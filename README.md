@@ -1,6 +1,6 @@
 # Logic Lab
 
-A small, static Boolean circuit workbench. It runs entirely in the browser and does not need a server, package install, or build step.
+A small, static Boolean circuit workbench. It runs entirely in the browser and does not need a server, package install, or build step. Coded using 1s and 0s from scratch 100% trust trust. Made with love.
 
 ## Run locally
 
