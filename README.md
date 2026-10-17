@@ -25,7 +25,7 @@ The site stores the current circuit in browser local storage. Use **Export JSON*
 - Press **Run** to calculate the output named **Y** (or the first output if Y is absent). The result shows Y’s bit array and opens a truth table for the inputs connected to Y. Every input port along that circuit path must be wired.
 - Input variable names must be unique, ignoring letter case.
 - Gate nodes use standard circuit drawings: AND has a flat input side and rounded output side; OR/XOR have curved input sides; NOT has a triangle; NAND/NOR/XNOR add an inversion bubble.
-- Hold **Space** and drag to pan; use the wheel or zoom controls to zoom.
+- Scroll to pan vertically and use **Shift + scroll** to pan horizontally. Hold **Space** and drag to pan in any direction; use **⌘/Ctrl + scroll** or the zoom controls to zoom.
 - Select a gate to rename it or change its input count.
 - Press **T** to show or hide the truth table.
 - Export and import circuits as JSON.
