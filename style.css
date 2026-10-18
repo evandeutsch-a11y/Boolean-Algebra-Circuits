@@ -27,3 +27,5 @@
 .sequence-input{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .panel-head .truth-expand-btn{margin:0 auto 0 18px;white-space:nowrap}.logic-overbar{text-decoration:overline;text-decoration-thickness:1px;text-decoration-color:currentColor}
+
+.gate-name-suffix{color:#87958d;font:8px 'DM Mono',monospace;white-space:nowrap}
