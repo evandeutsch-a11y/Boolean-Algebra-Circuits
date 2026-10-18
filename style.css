@@ -37,3 +37,5 @@
 .equation-item{border-top:1px solid #edf0ee}.equation-item .equation-row{border-top:0}.equation-item .processed-work{margin:8px 0 2px}.equation-simplified{margin-top:7px;padding:6px 8px;border-radius:5px;background:#f1f7f3;color:#26744e}.equation-simplified b{font:600 9px 'DM Sans',sans-serif;color:#26744e}.simplify-steps{margin:0;padding:8px 10px 8px 28px;color:#68766e;font:10px/1.6 'DM Sans',sans-serif}.simplify-steps li{padding:3px 0}.simplify-steps span{font:10px 'DM Mono',monospace;color:#34463a}.equation-original{color:#39493f}
 
 .simplify-step{display:grid;grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr);align-items:center;gap:6px;padding:7px 10px;border-top:1px solid #edf0ee;font:10px/1.5 'DM Mono',monospace;color:#34463a}.simplify-step b{text-align:center;color:#16875b}.simplify-nochange{padding:8px 10px;color:#68766e;font:10px/1.6 'DM Sans',sans-serif}.simplify-nochange span{font:10px 'DM Mono',monospace;color:#34463a}
+
+.simplify-chain{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:8px 10px;font:10px/1.6 'DM Mono',monospace;color:#34463a}.simplify-chain b{color:#16875b}
