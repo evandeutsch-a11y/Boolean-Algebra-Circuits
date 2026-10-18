@@ -17,4 +17,5 @@
 .circuit-manager{margin:0 0 19px;padding:0 1px}.circuit-manager select{width:100%;height:32px;padding:0 8px;border:1px solid var(--line);border-radius:6px;background:#fff;color:#435249;font:11px 'DM Sans',sans-serif}.circuit-manager-actions{display:flex;gap:6px;margin-top:6px}.circuit-manager-actions button{height:28px;flex:1;border:1px solid var(--line);border-radius:5px;background:#fff;color:#526158;font:600 10px 'DM Sans',sans-serif;cursor:pointer}.circuit-manager-actions button:hover{border-color:#8bbda1;background:#f5faf6;color:#18794f}.circuit-manager-actions #saveCircuitBtn{background:#e8f5ed;border-color:#d6ebdd;color:#18794f}.circuit-manager small{display:block;margin-top:5px;color:#9aa69f;font-size:9px}
 @media(max-width:620px){.circuit-manager{display:none}}
 .left-rail{overflow-y:auto}
+.sidebar-foot{position:static;left:auto;bottom:auto;margin-top:10px;padding:10px 1px 4px;border-top:1px solid #edf0ee}
 .gate-icon svg{display:block;width:30px;height:24px;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
