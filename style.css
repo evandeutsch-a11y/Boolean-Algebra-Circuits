@@ -21,3 +21,5 @@
 .gate-icon svg{display:block;width:30px;height:24px;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
 .inspector-content{overflow-y:auto}.gate-truth{margin-top:18px;padding-top:12px;border-top:1px solid #edf0ee}.gate-truth .prop-label{margin-top:0}.gate-truth .run-bits{white-space:normal}.gate-truth-order{display:block;color:#8a9790;font-size:9px;line-height:1.5;margin:4px 0 8px}.gate-truth .truth-table{margin-top:8px}.gate-truth .truth-table th,.gate-truth .truth-table td{padding:6px 7px}
+
+.truth-expand-btn{border:1px solid #dfe8e2;background:#f8fbf9;color:#25724d;border-radius:5px;padding:6px 9px;margin:10px 0;font:600 10px 'DM Sans',sans-serif;cursor:pointer}.truth-expand-btn:hover{background:#eaf5ee;border-color:#b9d8c5}.truth-table-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}.truth-table-scroll .truth-table{width:max-content;min-width:100%}.truth-table-scroll .truth-table th,.truth-table-scroll .truth-table td{white-space:nowrap}
