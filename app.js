@@ -20,12 +20,12 @@
   function seedCircuit(){const a=node('INPUT',105,135,'A'),b=node('INPUT',105,250,'B'),g=node('AND',330,177,'AND'),o=node('OUTPUT',560,185,'Y');a.pattern='0011';b.pattern='0101';state.nodes=[a,b,g,o];state.wires=[{from:a.id,to:g.id,input:0},{from:b.id,to:g.id,input:1},{from:g.id,to:o.id,input:0}];state.values[a.id]=true;state.values[b.id]=true;state.intentionalEmpty=false;render();setTimeout(fit,60);}
   function S(tag,attrs={},content=''){const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);if(content)e.textContent=content;return e;}
   function drawGate(g,n,d){
-    const inverted=['NAND','NOR','XNOR','NOT'].includes(n.type),xor=['XOR','XNOR'].includes(n.type);let bodyEnd=88,bubbleX=95;
+    const inverted=['NAND','NOR','XNOR','NOT'].includes(n.type),xor=['XOR','XNOR'].includes(n.type);let bodyEnd=88,bubbleX=93;if(n.type==='AND'||n.type==='NAND'){bodyEnd=75;bubbleX=80;}
     const label=S('text',{x:d.w/2,y:12,'text-anchor':'middle',class:'node-label'},n.type);g.append(label);
-    for(let i=0;i<inputs(n);i++){const y=(i+1)*d.h/(inputs(n)+1),to=n.type==='NOT'?31:n.type==='AND'||n.type==='NAND'?28:34;g.append(S('path',{d:`M0 ${y} H${to}`,class:'gate-lead'}));}
+    for(let i=0;i<inputs(n);i++){const y=(i+1)*d.h/(inputs(n)+1),to=n.type==='NOT'?31:n.type==='AND'||n.type==='NAND'||xor?28:34;g.append(S('path',{d:`M0 ${y} H${to}`,class:'gate-lead'}));}
     if(n.type==='AND'||n.type==='NAND')g.append(S('path',{d:'M28 17 H53 A22 22 0 0 1 53 61 H28 Z',class:'gate-outline'}));
     else if(n.type==='OR'||n.type==='NOR'||xor)g.append(S('path',{d:'M30 17 C49 20 68 28 88 39 C68 50 49 58 30 61 C39 50 39 28 30 17 Z',class:'gate-outline'}));
-    else if(n.type==='NOT') {bodyEnd=79;bubbleX=87;g.append(S('path',{d:'M31 18 L79 39 L31 60 Z',class:'gate-outline'}));}
+    else if(n.type==='NOT') {bodyEnd=79;bubbleX=84;g.append(S('path',{d:'M31 18 L79 39 L31 60 Z',class:'gate-outline'}));}
     if(xor)g.append(S('path',{d:'M23 17 C32 28 32 50 23 61',class:'gate-extra'}));
     const tip=inverted?bubbleX-5:bodyEnd;
     if(inverted)g.append(S('circle',{cx:bubbleX,cy:39,r:5,class:'gate-bubble'}));
