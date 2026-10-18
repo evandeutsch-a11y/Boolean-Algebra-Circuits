@@ -19,3 +19,5 @@
 .left-rail{overflow-y:auto}
 .sidebar-foot{position:static;left:auto;bottom:auto;margin-top:10px;padding:10px 1px 4px;border-top:1px solid #edf0ee}
 .gate-icon svg{display:block;width:30px;height:24px;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+.inspector-content{overflow-y:auto}.gate-truth{margin-top:18px;padding-top:12px;border-top:1px solid #edf0ee}.gate-truth .prop-label{margin-top:0}.gate-truth .run-bits{white-space:normal}.gate-truth-order{display:block;color:#8a9790;font-size:9px;line-height:1.5;margin:4px 0 8px}.gate-truth .truth-table{margin-top:8px}.gate-truth .truth-table th,.gate-truth .truth-table td{padding:6px 7px}
