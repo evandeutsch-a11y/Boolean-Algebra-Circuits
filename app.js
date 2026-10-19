@@ -213,7 +213,7 @@
     function parseAnd(){let terms=[parsePrimary()];while(peek()==='&'||peek()==='·'){take();terms.push(parsePrimary());}return terms.length===1?terms[0]:{op:'and',terms};}
     function parseOr(){let terms=[parseAnd()];while(peek()==='+'){take();terms.push(parseAnd());}return terms.length===1?terms[0]:{op:'or',terms};}
     const ast=parseOr();if(cursor!==tokens.length)throw Error('Unexpected token “'+peek()+'”. Add an operator between variables.');
-    const variables=[],seen=new Set();(function collect(e){if(e.op==='var'){if(!seen.has(e.name)){seen.add(e.name);variables.push(e.name);}return;}if(e.value)collect(e.value);(e.terms||[]).forEach(collect);})(ast);
+    const variables=[],seen=new Set();(function collect(e){if(e.op==='var'){if(!seen.has(e.name)){seen.add(e.name);variables.push(e.name);}return;}if(e.value)collect(e.value);(e.terms||[]).forEach(collect);})(ast);const folded=new Set();for(const name of variables){if(name.length>16)throw Error('Input variable “'+name+'” is longer than 16 characters.');if(folded.has(name.toLowerCase()))throw Error('Input variable names must be unique, including letter case.');folded.add(name.toLowerCase());}
     return{ast,variables,outputName};
   }
   function buildCircuitFromEquation(source){
