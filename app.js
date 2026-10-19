@@ -190,46 +190,46 @@
     const precedence={or:1,xor:2,and:3,not:4,var:5,const:5};
     function render(e,parent=0){if(e.op==='var')return esc(e.name);if(e.op==='const')return e.value?'1':'0';if(e.op==='not'){const inner=render(e.value,0),body=precedence[e.value.op]<4?`(${inner})`:inner;return `<span class="logic-overbar">${body}</span>`;}const p=precedence[e.op],symbol=e.op==='and'?' · ':e.op==='or'?' + ':' ⊕ ',body=e.terms.map(term=>render(term,p)).join(symbol);return p<parent?`(${body})`:body;}
     function rewrite(e){
-      if(e.op==='not'){const r=rewrite(e.value);if(r.changed)return{expr:not(r.expr),changed:true};if(e.value.op==='const')return{expr:constant(!e.value.value),changed:true};if(e.value.op==='not')return{expr:e.value.value,changed:true};if(e.value.op==='and'||e.value.op==='or')return{expr:group(e.value.op==='and'?'or':'and',e.value.terms.map(not)),changed:true};return{expr:e,changed:false};}
+      if(e.op==='not'){const r=rewrite(e.value);if(r.changed)return{expr:not(r.expr),changed:true,law:r.law};if(e.value.op==='const')return{expr:constant(!e.value.value),changed:true,law:'Complement law'};if(e.value.op==='not')return{expr:e.value.value,changed:true,law:'Involution law'};if(e.value.op==='and'||e.value.op==='or')return{expr:group(e.value.op==='and'?'or':'and',e.value.terms.map(not)),changed:true,law:"De Morgan's law"};return{expr:e,changed:false};}
       if(!e.terms)return{expr:e,changed:false};
-      const terms=[...e.terms];for(let i=0;i<terms.length;i++){const r=rewrite(terms[i]);if(r.changed){terms[i]=r.expr;return{expr:group(e.op,terms),changed:true};}}
-      for(let i=0;i<terms.length;i++)if(terms[i].op===e.op){terms.splice(i,1,...terms[i].terms);return{expr:group(e.op,terms),changed:true};}
+      const terms=[...e.terms];for(let i=0;i<terms.length;i++){const r=rewrite(terms[i]);if(r.changed){terms[i]=r.expr;return{expr:group(e.op,terms),changed:true,law:r.law};}}
+      for(let i=0;i<terms.length;i++)if(terms[i].op===e.op){terms.splice(i,1,...terms[i].terms);return{expr:group(e.op,terms),changed:true,law:'Associative law'};}
       const isAnd=e.op==='and',isOr=e.op==='or';
-      if(isAnd||isOr){const annihilator=isAnd?false:true,neutral=isAnd?true:false;if(terms.some(t=>t.op==='const'&&t.value===annihilator))return{expr:constant(annihilator),changed:true};const kept=terms.filter(t=>!(t.op==='const'&&t.value===neutral));if(kept.length!==terms.length)return{expr:kept.length?group(e.op,kept):constant(neutral),changed:true};
-        for(let i=0;i<terms.length;i++)for(let j=i+1;j<terms.length;j++)if(key(terms[i])===key(terms[j])){terms.splice(j,1);return{expr:group(e.op,terms),changed:true};}
-        for(let i=0;i<terms.length;i++)for(let j=i+1;j<terms.length;j++)if(key(terms[i])===key(not(terms[j]))||key(terms[j])===key(not(terms[i])))return{expr:constant(isOr),changed:true};
-        for(let i=0;i<terms.length;i++)for(let j=0;j<terms.length;j++)if(i!==j&&terms[j].op===(isOr?'and':'or')&&terms[j].terms.some(t=>key(t)===key(terms[i]))){terms.splice(j,1);return{expr:group(e.op,terms),changed:true};}
-        for(let i=0;i<terms.length;i++)for(let j=0;j<terms.length;j++)if(i!==j&&terms[j].op===(isOr?'and':'or')){const at=terms[j].terms.findIndex(t=>key(t)===key(not(terms[i])));if(at>=0){const replacement=terms[j].terms.filter((_,k)=>k!==at);terms.splice(j,1,replacement.length===0?terms[i]:replacement.length===1?replacement[0]:group(terms[j].op,replacement));return{expr:group(e.op,terms),changed:true};}}
+      if(isAnd||isOr){const annihilator=isAnd?false:true,neutral=isAnd?true:false;if(terms.some(t=>t.op==='const'&&t.value===annihilator))return{expr:constant(annihilator),changed:true,law:'Domination law'};const kept=terms.filter(t=>!(t.op==='const'&&t.value===neutral));if(kept.length!==terms.length)return{expr:kept.length?group(e.op,kept):constant(neutral),changed:true,law:'Identity law'};
+        for(let i=0;i<terms.length;i++)for(let j=i+1;j<terms.length;j++)if(key(terms[i])===key(terms[j])){terms.splice(j,1);return{expr:group(e.op,terms),changed:true,law:'Idempotent law'};}
+        for(let i=0;i<terms.length;i++)for(let j=i+1;j<terms.length;j++)if(key(terms[i])===key(not(terms[j]))||key(terms[j])===key(not(terms[i])))return{expr:constant(isOr),changed:true,law:'Complement law'};
+        for(let i=0;i<terms.length;i++)for(let j=0;j<terms.length;j++)if(i!==j&&terms[j].op===(isOr?'and':'or')&&terms[j].terms.some(t=>key(t)===key(terms[i]))){terms.splice(j,1);return{expr:group(e.op,terms),changed:true,law:'Absorption law'};}
+        for(let i=0;i<terms.length;i++)for(let j=0;j<terms.length;j++)if(i!==j&&terms[j].op===(isOr?'and':'or')){const at=terms[j].terms.findIndex(t=>key(t)===key(not(terms[i])));if(at>=0){const replacement=terms[j].terms.filter((_,k)=>k!==at);terms.splice(j,1,replacement.length===0?terms[i]:replacement.length===1?replacement[0]:group(terms[j].op,replacement));return{expr:group(e.op,terms),changed:true,law:'Consensus law'};}}
         const factorOp=isOr?'and':'or';
-        for(let i=0;i<terms.length;i++)for(let j=i+1;j<terms.length;j++)if(terms[i].op===factorOp&&terms[j].op===factorOp){const left=terms[i].terms,right=terms[j].terms;for(let a=0;a<left.length;a++)for(let b=0;b<right.length;b++)if(key(left[a])===key(not(right[b]))||key(right[b])===key(not(left[a]))){const remainder=[...left.filter((_,k)=>k!==a),...right.filter((_,k)=>k!==b)];for(let k=0;k<terms.length;k++)if(k!==i&&k!==j&&terms[k].op===factorOp){const candidate=[...terms[k].terms],same=candidate.length===remainder.length&&remainder.every(part=>{const at=candidate.findIndex(other=>key(other)===key(part));if(at<0)return false;candidate.splice(at,1);return true;});if(same){terms.splice(k,1);return{expr:group(e.op,terms),changed:true};}}}}
+        for(let i=0;i<terms.length;i++)for(let j=i+1;j<terms.length;j++)if(terms[i].op===factorOp&&terms[j].op===factorOp){const left=terms[i].terms,right=terms[j].terms;for(let a=0;a<left.length;a++)for(let b=0;b<right.length;b++)if(key(left[a])===key(not(right[b]))||key(right[b])===key(not(left[a]))){const remainder=[...left.filter((_,k)=>k!==a),...right.filter((_,k)=>k!==b)];for(let k=0;k<terms.length;k++)if(k!==i&&k!==j&&terms[k].op===factorOp){const candidate=[...terms[k].terms],same=candidate.length===remainder.length&&remainder.every(part=>{const at=candidate.findIndex(other=>key(other)===key(part));if(at<0)return false;candidate.splice(at,1);return true;});if(same){terms.splice(k,1);return{expr:group(e.op,terms),changed:true,law:'Consensus law'};}}}}
         for(let i=0;i<terms.length;i++)for(let j=i+1;j<terms.length;j++)if(terms[i].op===factorOp&&terms[j].op===factorOp){
           const left=[...terms[i].terms],right=[...terms[j].terms],common=[];
           for(const part of left){const at=right.findIndex(other=>key(other)===key(part));if(at>=0){common.push(part);right.splice(at,1);left.splice(left.indexOf(part),1);}}
-          if(common.length){const restA=left.length===1?left[0]:group(factorOp,left),restB=right.length===1?right[0]:group(factorOp,right);const factored=group(factorOp,[...common,group(isOr?'or':'and',[restA,restB])]);terms.splice(j,1);terms.splice(i,1,factored);return{expr:group(e.op,terms),changed:true};}
+          if(common.length){const restA=left.length===1?left[0]:group(factorOp,left),restB=right.length===1?right[0]:group(factorOp,right);const factored=group(factorOp,[...common,group(isOr?'or':'and',[restA,restB])]);terms.splice(j,1);terms.splice(i,1,factored);return{expr:group(e.op,terms),changed:true,law:'Distributive law (factoring)'};}
         }
         for(let i=0;i<terms.length;i++)for(let j=i+1;j<terms.length;j++)if(terms[i].op===factorOp&&terms[j].op===factorOp){
           const left=terms[i].terms,right=terms[j].terms;
           for(let a=0;a<left.length;a++)for(let b=0;b<right.length;b++)if(key(left[a])===key(not(right[b]))||key(right[b])===key(not(left[a]))){
             const remainder=[...left.filter((_,k)=>k!==a),...right.filter((_,k)=>k!==b)];
-            for(let k=0;k<terms.length;k++)if(k!==i&&k!==j&&terms[k].op===factorOp){const candidate=[...terms[k].terms],same=candidate.length===remainder.length&&remainder.every(part=>{const at=candidate.findIndex(other=>key(other)===key(part));if(at<0)return false;candidate.splice(at,1);return true;});if(same){terms.splice(k,1);return{expr:group(e.op,terms),changed:true};}}
+            for(let k=0;k<terms.length;k++)if(k!==i&&k!==j&&terms[k].op===factorOp){const candidate=[...terms[k].terms],same=candidate.length===remainder.length&&remainder.every(part=>{const at=candidate.findIndex(other=>key(other)===key(part));if(at<0)return false;candidate.splice(at,1);return true;});if(same){terms.splice(k,1);return{expr:group(e.op,terms),changed:true,law:'Consensus law'};}}
           }
         }
         for(let i=0;i<terms.length;i++)for(let j=i+1;j<terms.length;j++)if(terms[i].op===factorOp&&terms[j].op===factorOp){
           const left=[...terms[i].terms],right=[...terms[j].terms];let complementPair=null;
           for(let a=0;a<left.length&&!complementPair;a++)for(let b=0;b<right.length;b++)if(key(left[a])===key(not(right[b]))||key(right[b])===key(not(left[a]))){const remA=left.filter((_,k)=>k!==a),remB=right.filter((_,k)=>k!==b);if(remA.length===remB.length&&remA.every(x=>{const at=remB.findIndex(y=>key(x)===key(y));if(at<0)return false;remB.splice(at,1);return true;})){complementPair={rest:remA};break;}}
-          if(complementPair){const rest=complementPair.rest.length===0?constant(isOr):complementPair.rest.length===1?complementPair.rest[0]:group(factorOp,complementPair.rest);terms.splice(j,1);terms.splice(i,1,rest);return{expr:group(e.op,terms),changed:true};}
+          if(complementPair){const rest=complementPair.rest.length===0?constant(isOr):complementPair.rest.length===1?complementPair.rest[0]:group(factorOp,complementPair.rest);terms.splice(j,1);terms.splice(i,1,rest);return{expr:group(e.op,terms),changed:true,law:'Complement law'};}
         }
       }
-      if(e.op==='xor'){let parity=0;const kept=[];for(const term of terms){if(term.op==='const')parity^=term.value?1:0;else{const i=kept.findIndex(t=>key(t)===key(term));if(i<0)kept.push(term);else kept.splice(i,1);}}if(parity||kept.length!==terms.length)return{expr:parity?not(kept.length===1?kept[0]:group('xor',kept)):kept.length===1?kept[0]:kept.length?group('xor',kept):constant(false),changed:true};}
+      if(e.op==='xor'){let parity=0;const kept=[];for(const term of terms){if(term.op==='const')parity^=term.value?1:0;else{const i=kept.findIndex(t=>key(t)===key(term));if(i<0)kept.push(term);else kept.splice(i,1);}}if(parity||kept.length!==terms.length)return{expr:parity?not(kept.length===1?kept[0]:group('xor',kept)):kept.length===1?kept[0]:kept.length?group('xor',kept):constant(false),changed:true,law:'XOR identity'};}
       return{expr:e,changed:false};
     }
     function expandAbsorption(e){
-      if(e.op==='not'){const child=expandAbsorption(e.value);return child?{expr:not(child.expr),steps:child.steps.map(step=>not(step))}:null;}
+      if(e.op==='not'){const child=expandAbsorption(e.value);return child?{expr:not(child.expr),steps:child.steps.map(step=>({...step,expr:not(step.expr)}))}:null;}
       if(!e.terms)return null;
       for(let i=0;i<e.terms.length;i++){
         const child=expandAbsorption(e.terms[i]);if(!child)continue;
         const wrap=term=>{const terms=[...e.terms];terms[i]=term;return group(e.op,terms);};
-        return{expr:wrap(child.expr),steps:child.steps.map(wrap)};
+        return{expr:wrap(child.expr),steps:child.steps.map(step=>({...step,expr:wrap(step.expr)}))};
       }
       if(e.op!=='and')return null;
       for(let i=0;i<e.terms.length;i++)if(e.terms[i].op==='or')for(let j=0;j<e.terms.length;j++)if(i!==j){
@@ -240,7 +240,7 @@
         const reducedFactor=group('or',replacement.terms.map(term=>{const unique=[];for(const part of term.terms)if(!unique.some(item=>key(item)===key(part)))unique.push(part);return unique.length===1?unique[0]:group('and',unique);}));
         const reducedTerms=[...e.terms];reducedTerms[i]=reducedFactor;reducedTerms.splice(j,1);if(j<i)reducedTerms.splice(i-1,1,reducedFactor);
         const afterIdempotence=group('and',reducedTerms),absorbedTerms=e.terms.filter((_,index)=>index!==i&&index!==j);absorbedTerms.splice(Math.min(i,j),0,shared);
-        return{expr:group('and',absorbedTerms),steps:[expanded,afterIdempotence]};
+        return{expr:group('and',absorbedTerms),steps:[{expr:expanded,law:'Distributive law'}, {expr:afterIdempotence,law:'Idempotent law'}, {expr:group('and',absorbedTerms),law:'Absorption law'}]};
       }
       return null;
     }
@@ -255,9 +255,9 @@
       const candidates=[sop,pos].map(candidate=>{let e=candidate;for(let i=0;i<24;i++){const r=rewrite(e);if(!r.changed)break;e=r.expr;}return e;});
       const best=candidates.sort((a,b)=>cost(a)-cost(b))[0];return cost(best)<cost(base)||cost(best)===cost(base)&&normalized(best)!==normalized(base)?best:base;
     }
-    let expr=build(target),steps=[];for(let i=0;i<64;i++){const expanded=expandAbsorption(expr);if(expanded){for(const intermediate of expanded.steps){const before=render(expr),after=render(intermediate);if(before!==after)steps.push({before,after});expr=intermediate;}const before=render(expr),after=render(expanded.expr);if(before!==after)steps.push({before,after});expr=expanded.expr;continue;}const r=rewrite(expr);if(!r.changed)break;const before=render(expr),after=render(r.expr);if(before!==after)steps.push({before,after});expr=r.expr;}
-    const minimized=minimalCandidate(traceOutput(target).inputs,expr);if(normalized(minimized)!==normalized(expr)){steps.push({before:render(expr),after:render(minimized)});expr=minimized;}
-    const middle=steps.map(step=>step.after),work=middle.length?middle.map(equation=>`<div class="simplify-step"><b>=</b><span>${equation}</span></div>`).join(''):'<div class="simplify-nochange">No Boolean reduction applies.</div>';
+    let expr=build(target),steps=[];for(let i=0;i<64;i++){const expanded=expandAbsorption(expr);if(expanded){for(const step of expanded.steps){const before=render(expr),after=render(step.expr);if(before!==after)steps.push({before,after,law:step.law});expr=step.expr;}continue;}const r=rewrite(expr);if(!r.changed)break;const before=render(expr),after=render(r.expr);if(before!==after)steps.push({before,after,law:r.law||'Boolean identity'});expr=r.expr;}
+    const minimized=minimalCandidate(traceOutput(target).inputs,expr);if(normalized(minimized)!==normalized(expr)){steps.push({before:render(expr),after:render(minimized),law:'Truth-table minimization'});expr=minimized;}
+    const work=steps.length?steps.map(step=>`<div class="simplify-step"><b>=</b><div class="simplify-step-content"><span class="simplify-equation">${step.after}</span><small class="simplify-law">${esc(step.law||'Boolean identity')}</small></div></div>`).join(''):'<div class="simplify-nochange">No Boolean reduction applies.</div>';
     return{equation:render(expr),work};
   }
   function showGateArrayDetails(id,ins,patterns,rows){
