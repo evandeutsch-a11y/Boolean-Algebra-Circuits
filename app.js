@@ -224,14 +224,23 @@
       return{expr:e,changed:false};
     }
     function expandAbsorption(e){
-      if(e.op==='not'){const child=expandAbsorption(e.value);return child?not(child):null;}
+      if(e.op==='not'){const child=expandAbsorption(e.value);return child?{expr:not(child.expr),steps:child.steps.map(step=>not(step))}:null;}
       if(!e.terms)return null;
-      for(let i=0;i<e.terms.length;i++){const child=expandAbsorption(e.terms[i]);if(child){const terms=[...e.terms];terms[i]=child;return group(e.op,terms);}}
+      for(let i=0;i<e.terms.length;i++){
+        const child=expandAbsorption(e.terms[i]);if(!child)continue;
+        const wrap=term=>{const terms=[...e.terms];terms[i]=term;return group(e.op,terms);};
+        return{expr:wrap(child.expr),steps:child.steps.map(wrap)};
+      }
       if(e.op!=='and')return null;
       for(let i=0;i<e.terms.length;i++)if(e.terms[i].op==='or')for(let j=0;j<e.terms.length;j++)if(i!==j){
-        const factor=e.terms[i],shared=e.terms[j],matching=factor.terms.findIndex(term=>key(term)===key(shared));
-        if(matching<0)continue;
-        const expanded=factor.terms.map(term=>group('and',[term,shared])),terms=e.terms.filter((_,index)=>index!==j);terms[i<j?i:i-1]=group('or',expanded);return group('and',terms);
+        const factor=e.terms[i],shared=e.terms[j],matching=factor.terms.some(term=>key(term)===key(shared));
+        if(!matching)continue;
+        const replacement=group('or',factor.terms.map(term=>group('and',[term,shared]))),expandedTerms=[...e.terms];expandedTerms[i]=replacement;expandedTerms.splice(j,1);if(j<i)expandedTerms.splice(i-1,1,replacement);
+        const expanded=group('and',expandedTerms);
+        const reducedFactor=group('or',replacement.terms.map(term=>{const unique=[];for(const part of term.terms)if(!unique.some(item=>key(item)===key(part)))unique.push(part);return unique.length===1?unique[0]:group('and',unique);}));
+        const reducedTerms=[...e.terms];reducedTerms[i]=reducedFactor;reducedTerms.splice(j,1);if(j<i)reducedTerms.splice(i-1,1,reducedFactor);
+        const afterIdempotence=group('and',reducedTerms),absorbedTerms=e.terms.filter((_,index)=>index!==i&&index!==j);absorbedTerms.splice(Math.min(i,j),0,shared);
+        return{expr:group('and',absorbedTerms),steps:[expanded,afterIdempotence]};
       }
       return null;
     }
@@ -246,7 +255,7 @@
       const candidates=[sop,pos].map(candidate=>{let e=candidate;for(let i=0;i<24;i++){const r=rewrite(e);if(!r.changed)break;e=r.expr;}return e;});
       const best=candidates.sort((a,b)=>cost(a)-cost(b))[0];return cost(best)<cost(base)||cost(best)===cost(base)&&normalized(best)!==normalized(base)?best:base;
     }
-    let expr=build(target),steps=[];for(let i=0;i<64;i++){const expanded=expandAbsorption(expr);if(expanded){const before=render(expr),after=render(expanded);if(before!==after)steps.push({before,after});expr=expanded;continue;}const r=rewrite(expr);if(!r.changed)break;const before=render(expr),after=render(r.expr);if(before!==after)steps.push({before,after});expr=r.expr;}
+    let expr=build(target),steps=[];for(let i=0;i<64;i++){const expanded=expandAbsorption(expr);if(expanded){for(const intermediate of expanded.steps){const before=render(expr),after=render(intermediate);if(before!==after)steps.push({before,after});expr=intermediate;}const before=render(expr),after=render(expanded.expr);if(before!==after)steps.push({before,after});expr=expanded.expr;continue;}const r=rewrite(expr);if(!r.changed)break;const before=render(expr),after=render(r.expr);if(before!==after)steps.push({before,after});expr=r.expr;}
     const minimized=minimalCandidate(traceOutput(target).inputs,expr);if(normalized(minimized)!==normalized(expr)){steps.push({before:render(expr),after:render(minimized)});expr=minimized;}
     const middle=steps.map(step=>step.after),work=middle.length?middle.map(equation=>`<div class="simplify-step"><b>=</b><span>${equation}</span></div>`).join(''):'<div class="simplify-nochange">No Boolean reduction applies.</div>';
     return{equation:render(expr),work};
