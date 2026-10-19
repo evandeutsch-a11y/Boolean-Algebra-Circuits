@@ -223,6 +223,18 @@
       if(e.op==='xor'){let parity=0;const kept=[];for(const term of terms){if(term.op==='const')parity^=term.value?1:0;else{const i=kept.findIndex(t=>key(t)===key(term));if(i<0)kept.push(term);else kept.splice(i,1);}}if(parity||kept.length!==terms.length)return{expr:parity?not(kept.length===1?kept[0]:group('xor',kept)):kept.length===1?kept[0]:kept.length?group('xor',kept):constant(false),changed:true};}
       return{expr:e,changed:false};
     }
+    function expandAbsorption(e){
+      if(e.op==='not'){const child=expandAbsorption(e.value);return child?not(child):null;}
+      if(!e.terms)return null;
+      for(let i=0;i<e.terms.length;i++){const child=expandAbsorption(e.terms[i]);if(child){const terms=[...e.terms];terms[i]=child;return group(e.op,terms);}}
+      if(e.op!=='and')return null;
+      for(let i=0;i<e.terms.length;i++)if(e.terms[i].op==='or')for(let j=0;j<e.terms.length;j++)if(i!==j){
+        const factor=e.terms[i],shared=e.terms[j],matching=factor.terms.findIndex(term=>key(term)===key(shared));
+        if(matching<0)continue;
+        const expanded=factor.terms.map(term=>group('and',[term,shared])),terms=e.terms.filter((_,index)=>index!==j);terms[i<j?i:i-1]=group('or',expanded);return group('and',terms);
+      }
+      return null;
+    }
     function normalized(e){if(!e.terms)return key(e);let terms=[];e.terms.forEach(t=>{if(t.op===e.op)terms.push(...t.terms);else terms.push(t);});return e.op+'('+terms.map(normalized).sort().join(',')+')';}
     function cost(e){return e.terms?1+e.terms.reduce((sum,t)=>sum+cost(t),0):e.op==='not'?1+cost(e.value):1;}
     function cover(minterms,width){if(!minterms.length)return[];let current=new Set(minterms),primes=new Set();while(current.size){const terms=[...current],used=new Set(),next=new Set();for(let i=0;i<terms.length;i++)for(let j=i+1;j<terms.length;j++){let diff=-1,ok=true;for(let k=0;k<width;k++)if(terms[i][k]!==terms[j][k]){if(terms[i][k]==='-'||terms[j][k]==='-'||diff!==-1){ok=false;break;}diff=k;}if(ok&&diff>=0){used.add(terms[i]);used.add(terms[j]);next.add(terms[i].slice(0,diff)+'-'+terms[i].slice(diff+1));}}terms.forEach(t=>{if(!used.has(t))primes.add(t);});current=next;}
@@ -234,7 +246,7 @@
       const candidates=[sop,pos].map(candidate=>{let e=candidate;for(let i=0;i<24;i++){const r=rewrite(e);if(!r.changed)break;e=r.expr;}return e;});
       const best=candidates.sort((a,b)=>cost(a)-cost(b))[0];return cost(best)<cost(base)||cost(best)===cost(base)&&normalized(best)!==normalized(base)?best:base;
     }
-    let expr=build(target),steps=[];for(let i=0;i<64;i++){const r=rewrite(expr);if(!r.changed)break;const before=render(expr),after=render(r.expr);if(before!==after)steps.push({before,after});expr=r.expr;}
+    let expr=build(target),steps=[];for(let i=0;i<64;i++){const expanded=expandAbsorption(expr);if(expanded){const before=render(expr),after=render(expanded);if(before!==after)steps.push({before,after});expr=expanded;continue;}const r=rewrite(expr);if(!r.changed)break;const before=render(expr),after=render(r.expr);if(before!==after)steps.push({before,after});expr=r.expr;}
     const minimized=minimalCandidate(traceOutput(target).inputs,expr);if(normalized(minimized)!==normalized(expr)){steps.push({before:render(expr),after:render(minimized)});expr=minimized;}
     const middle=steps.map(step=>step.after),work=middle.length?middle.map(equation=>`<div class="simplify-step"><b>=</b><span>${equation}</span></div>`).join(''):'<div class="simplify-nochange">No Boolean reduction applies.</div>';
     return{equation:render(expr),work};
