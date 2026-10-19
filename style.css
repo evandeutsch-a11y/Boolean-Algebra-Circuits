@@ -41,3 +41,5 @@
 .simplify-chain{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:8px 10px;font:10px/1.6 'DM Mono',monospace;color:#34463a}.simplify-chain b{color:#16875b}
 
 .simplify-step{grid-template-columns:16px minmax(0,1fr);align-items:start}
+
+.equation-import-modal{width:min(520px,calc(100% - 30px))}.equation-import-modal p code{padding:1px 4px;border-radius:3px;background:#f1f6f2;color:#28744f;font:11px 'DM Mono',monospace}.equation-input{display:block;width:100%;resize:vertical;padding:11px;border:1px solid var(--line);border-radius:6px;background:#fbfcfb;color:#34463a;font:13px/1.6 'DM Mono',monospace;outline-color:#83c49f}.equation-input:focus{border-color:#39a575}.equation-input-status{min-height:20px;margin-top:6px;color:#89968f;font-size:10px}.equation-input-status.error{color:#b34d3f}.equation-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.canvas-tools #buildEquationBtn{background:#f5f8f5;border:1px solid #dfe9e2;color:#26744e}@media(max-width:720px){.canvas-tools #buildEquationBtn span{display:none}.canvas-tools #buildEquationBtn{padding:0 5px}}
