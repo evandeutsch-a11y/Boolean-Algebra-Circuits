@@ -140,7 +140,7 @@
       const vals=ins.map((input,index)=>patterns[index][row%patterns[index].length]==='1'),inputsForRow=Object.fromEntries(ins.map((input,index)=>[input.id,vals[index]])),value=simulate(inputsForRow)[gate.id]?.value;
       html+=`<tr>${vals.map(bit=>`<td class="${bit?'truth-one':'truth-zero'}">${bit?1:0}</td>`).join('')}<td class="${value?'truth-one':'truth-zero'}">${value?1:0}</td></tr>`;
     }
-    return `<div class="gate-truth">${html}</tbody></table></div>`;
+    return `<details class="gate-truth"><summary>Expand gate truth table</summary><div class="gate-truth-content">${html}</tbody></table></div></details>`;
   }
   function inspector(){
     const box=document.querySelector('#inspector'),n=state.nodes.find(x=>x.id===state.selected);
