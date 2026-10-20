@@ -12,6 +12,32 @@
   function createCircuit(){save();const circuits=getSavedCircuits();state.circuitId=uid();state.projectName=`Circuit ${circuits.length+1}`;state.nodes=[];state.wires=[];state.values={};state.gateCounters={};state.selected=null;state.selectedWire=null;state.connectFrom=null;state.history=[];state.future=[];state.pan={x:0,y:0};state.zoom=1;state.intentionalEmpty=true;render();notify('New circuit created');}
   function openCircuit(id){if(id===state.circuitId)return;save();const circuit=getSavedCircuits().find(c=>c.circuitId===id);if(!circuit)return;state.circuitId=circuit.circuitId;state.history=[];state.future=[];state.values={};state.gateCounters={};restore(JSON.stringify(circuit));notify(`Opened ${circuit.projectName||'circuit'}`);}
   function checkpoint(){state.history.push(JSON.stringify({nodes:state.nodes,wires:state.wires}));if(state.history.length>40)state.history.shift();state.future=[];}
+  function historyChange(beforeRaw,afterRaw){
+    try{
+      const before=JSON.parse(beforeRaw),after=JSON.parse(afterRaw),beforeNodes=new Map((before.nodes||[]).map(n=>[n.id,n])),afterNodes=new Map((after.nodes||[]).map(n=>[n.id,n]));
+      for(const [id,n] of beforeNodes)if(!afterNodes.has(id))return{kind:'delete',subject:n.name||n.type};
+      for(const [id,n] of afterNodes)if(!beforeNodes.has(id))return{kind:'add',subject:n.name||n.type};
+      for(const [id,a] of beforeNodes){const b=afterNodes.get(id);if(!b)continue;const name=a.name||a.type;
+        if(a.type!==b.type)return{kind:'change gate',subject:name};
+        if(a.name!==b.name)return{kind:'rename',subject:b.name||a.name};
+        if(a.inputs!==b.inputs)return{kind:'change input count',subject:name};
+        if(a.pattern!==b.pattern)return{kind:'edit input sequence',subject:name};
+        if(a.x!==b.x||a.y!==b.y)return{kind:'move',subject:name};
+      }
+      const wireKey=w=>`${w.from}|${w.to}|${w.input}`,oldWires=new Set((before.wires||[]).map(wireKey)),newWires=new Set((after.wires||[]).map(wireKey));
+      const removed=[...oldWires].filter(w=>!newWires.has(w)).length,added=[...newWires].filter(w=>!oldWires.has(w)).length;
+      if(removed&&added)return{kind:'change connection',subject:''};
+      if(removed)return{kind:'delete connection',subject:''};
+      if(added)return{kind:'add connection',subject:''};
+    }catch{}
+    return{kind:'change',subject:'circuit'};
+  }
+  function historyNotice(direction,change){
+    const subject=change.subject?` ${change.subject}`:'';
+    if(change.kind==='delete')return direction==='undo'?`Undo delete: restored${subject}.`:`Redo delete: removed${subject}.`;
+    if(change.kind==='add')return direction==='undo'?`Undo add: removed${subject}.`:`Redo add: restored${subject}.`;
+    return `${direction==='undo'?'Undo':'Redo'} ${change.kind}${subject}.`;
+  }
   function canonicalPattern(index,count){const rows=2**Math.min(count,8),span=2**Math.max(0,Math.min(count,8)-index-1);return Array.from({length:rows},(_,row)=>Math.floor(row/span)%2).join('');}
   function repeatPattern(pattern,minLength){const bits=String(pattern||'0').replace(/[^01]/g,'')||'0';return bits.length>=minLength?bits:bits.repeat(Math.ceil(minLength/bits.length)).slice(0,minLength);}
   function uniqueInputName(name,exceptId=null){const used=new Set(state.nodes.filter(n=>n.type==='INPUT'&&n.id!==exceptId).map(n=>n.name.trim().toLowerCase()));let base=name||'A',candidate=base,suffix=2;while(used.has(candidate.trim().toLowerCase()))candidate=`${base}${suffix++}`;return candidate;}
@@ -336,6 +362,6 @@
   document.querySelector('#importBtn').onclick=()=>document.querySelector('#fileInput').click();document.querySelector('#fileInput').onchange=async e=>{const f=e.target.files[0];if(f){checkpoint();restore(await f.text());notify('Circuit imported');e.target.value='';}};
   document.querySelector('#search').addEventListener('input',e=>{const q=e.target.value.toLowerCase();document.querySelectorAll('.component').forEach(c=>c.style.display=c.textContent.toLowerCase().includes(q)?'':'none');});
   document.addEventListener('keydown',e=>{if(!equationModal.hidden||!termsModal.hidden||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;if(e.code==='Space'){state.space=true;e.preventDefault();}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();document.querySelector('#search').focus();}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'){e.preventDefault();const list=e.shiftKey?state.future:state.history,other=e.shiftKey?state.history:state.future;if(list.length){other.push(JSON.stringify({nodes:state.nodes,wires:state.wires}));restore(list.pop());}}if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();deleteSelection();}if(e.key==='Escape'){state.connectFrom=null;render();}if(e.key.toLowerCase()==='t')toggleTruth();if(e.key.toLowerCase()==='a'){const n=state.nodes.find(x=>x.type==='INPUT');if(n){state.values[n.id]=!state.values[n.id];render();}}});document.addEventListener('keyup',e=>{if(e.code==='Space')state.space=false;});
-  document.querySelector('#undoBtn').onclick=()=>{if(state.history.length){state.future.push(JSON.stringify({nodes:state.nodes,wires:state.wires}));restore(state.history.pop());}};document.querySelector('#redoBtn').onclick=()=>{if(state.future.length){state.history.push(JSON.stringify({nodes:state.nodes,wires:state.wires}));restore(state.future.pop());}};
+  document.querySelector('#undoBtn').onclick=()=>{if(state.history.length){const current=JSON.stringify({nodes:state.nodes,wires:state.wires}),previous=state.history.pop(),change=historyChange(previous,current);state.future.push(current);restore(previous);notify(historyNotice('undo',change));}};document.querySelector('#redoBtn').onclick=()=>{if(state.future.length){const current=JSON.stringify({nodes:state.nodes,wires:state.wires}),next=state.future.pop(),change=historyChange(current,next);state.history.push(current);restore(next);notify(historyNotice('redo',change));}};
   const saved=localStorage.getItem('logiclab-circuit');if(saved){try{state.circuitId=JSON.parse(saved).circuitId||uid();}catch{state.circuitId=uid();}restore(saved);save();}else{const circuits=getSavedCircuits();if(circuits.length){state.circuitId=circuits[0].circuitId;restore(JSON.stringify(circuits[0]));}else{state.circuitId=uid();seedCircuit();}}window.addEventListener('resize',render);
 })();
