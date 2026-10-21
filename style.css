@@ -36,3 +36,9 @@
 
 .terms-modal{width:min(820px,calc(100% - 28px));max-height:min(84vh,820px);overflow:auto;padding:26px}.terms-modal h2{margin-bottom:6px}.terms-intro{margin-bottom:16px!important}.terms-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(230px,.75fr);gap:18px}.terms-section h3{margin:0 0 8px;color:#26744e;font:600 12px 'Space Grotesk',sans-serif}.terms-list{margin:0;border:1px solid #e7ede8;border-radius:7px;overflow:hidden}.terms-list>div{padding:8px 10px;border-top:1px solid #edf1ee}.terms-list>div:first-child{border-top:0}.terms-list dt{margin-bottom:3px;color:#354a3c;font:600 10px 'DM Sans',sans-serif}.terms-list dd{margin:0;color:#718077;font:10px/1.5 'DM Sans',sans-serif}.terms-list dd:first-letter{color:inherit}.gate-terms>div{padding:9px 10px}.terms-modal .modal-close{position:sticky;float:right;top:0;margin-right:-12px;margin-top:-12px;z-index:1;background:#fff;border-radius:50%}
 @media(max-width:700px){.terms-modal{padding:21px 16px}.terms-grid{grid-template-columns:1fr;gap:16px}}
+
+/* Keep the Run prompt and its result, while hiding the always-on live simulation panel. */
+.simulation-card{border:0;background:transparent;padding:0;margin-top:auto}
+.simulation-card>.sim-head,.simulation-card>.sim-foot,.simulation-card .sim-label,.simulation-card .sim-output-list{display:none}
+.simulation-card>.sim-result{border:0;margin:0;padding:0}
+.simulation-card .run-result{margin-top:0}
